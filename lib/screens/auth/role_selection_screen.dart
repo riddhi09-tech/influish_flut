@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'login_screen.dart';
+
 class RoleSelectionScreen extends StatefulWidget {
   const RoleSelectionScreen({super.key});
 
@@ -202,13 +204,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   }
 
   void _continue() {
-    // Navigation to the login screen will be added next.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Selected role: $_selectedRole'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => LoginScreen(role: _selectedRole)));
   }
 }
