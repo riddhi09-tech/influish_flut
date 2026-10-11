@@ -1,11 +1,50 @@
 import 'package:flutter/material.dart';
 
-import '../../models/advertiser_campaign.dart';
-import '../../models/advertiser_store.dart';
-import '../../widgets/bottom_nav_bar.dart';
 import 'applicants_screen.dart';
 import 'company_profile_setup_screen.dart';
 import 'create_campaign_screen.dart';
+
+String advertiserCompanyName = 'Glow & Co.';
+
+final List<Map<String, dynamic>> demoCampaigns = [
+  {
+    'title': 'Summer Style Campaign',
+    'budget': '₹75,000',
+    'status': 'Open',
+    'category': 'Fashion',
+    'description':
+        'Promote the Summer collection for premium fashion creators.',
+    'applications': [
+      {'name': 'Riya Malhotra', 'status': 'Pending'},
+      {'name': 'Isha Verma', 'status': 'Accepted'},
+      {'name': 'Nisha Kapoor', 'status': 'Pending'},
+    ],
+  },
+  {
+    'title': 'Urban Activewear Launch',
+    'budget': '₹90,000',
+    'status': 'Open',
+    'category': 'Fitness',
+    'description':
+        'Launch a fresh collection with fitness and lifestyle creators.',
+    'applications': [
+      {'name': 'Ananya Shah', 'status': 'Accepted'},
+      {'name': 'Meher Singh', 'status': 'Pending'},
+      {'name': 'Kavya Sen', 'status': 'Rejected'},
+      {'name': 'Aman Goyal', 'status': 'Pending'},
+    ],
+  },
+  {
+    'title': 'Spring Essentials',
+    'budget': '₹55,000',
+    'status': 'Draft',
+    'category': 'Lifestyle',
+    'description': 'Budget-friendly campaign for spring and wellness creators.',
+    'applications': [
+      {'name': 'Tanya Reddy', 'status': 'Pending'},
+    ],
+  },
+];
 
 class AdvertiserHomeScreen extends StatefulWidget {
   const AdvertiserHomeScreen({super.key});
@@ -16,26 +55,51 @@ class AdvertiserHomeScreen extends StatefulWidget {
 
 class _AdvertiserHomeScreenState extends State<AdvertiserHomeScreen> {
   int _selectedTab = 0;
+  final List<Map<String, dynamic>> _campaigns = List.from(demoCampaigns);
 
-  List<AdvertiserCampaign> get _campaigns => AdvertiserStore.campaigns;
+  Future<void> _openCreateCampaign() async {
+    final result = await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const CreateCampaignScreen()));
+
+    if (result is Map<String, dynamic> && mounted) {
+      setState(() {
+        _campaigns.add(result);
+      });
+    }
+  }
+
+  Future<void> _editCampaign(Map<String, dynamic> campaign) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CreateCampaignScreen(campaignToEdit: campaign),
+      ),
+    );
+
+    if (result is Map<String, dynamic> && mounted) {
+      final index = _campaigns.indexWhere((item) => identical(item, campaign));
+      if (index != -1) {
+        setState(() {
+          _campaigns[index] = result;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    AdvertiserStore.syncFromInfluencerApplications();
-
     final activeCampaigns = _campaigns
-        .where((campaign) => campaign.status == 'Open')
+        .where((campaign) => campaign['status'] == 'Open')
         .length;
     final applications = _campaigns.fold<int>(
       0,
-      (sum, campaign) => sum + campaign.applications.length,
+      (sum, campaign) => sum + (campaign['applications'] as List).length,
     );
     final pendingReviews = _campaigns.fold<int>(
       0,
       (sum, campaign) =>
           sum +
-          campaign.applications
-              .where((applicant) => applicant.status == 'Pending')
+          (campaign['applications'] as List)
+              .where((app) => app['status'] == 'Pending')
               .length,
     );
 
@@ -49,18 +113,42 @@ class _AdvertiserHomeScreenState extends State<AdvertiserHomeScreen> {
               activeCampaigns: activeCampaigns,
               applications: applications,
               pendingReviews: pendingReviews,
+              companyName: advertiserCompanyName,
+              campaigns: _campaigns,
+              onCreateCampaign: _openCreateCampaign,
+              onEditCampaign: _editCampaign,
             ),
-            _CampaignsTab(campaigns: _campaigns),
+            _CampaignsTab(campaigns: _campaigns, onEditCampaign: _editCampaign),
             const _AlertsTab(),
             CompanyProfileSetupScreen(isEditMode: true),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavBar(
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedTab,
-        onTap: (index) {
-          setState(() => _selectedTab = index);
-        },
+        onTap: (index) => setState(() => _selectedTab = index),
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: const Color(0xFF7C3AED),
+        unselectedItemColor: const Color(0xFF6B7280),
+        backgroundColor: Colors.white,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.campaign_outlined),
+            label: 'Campaigns',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none_outlined),
+            label: 'Alerts',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }
@@ -70,11 +158,19 @@ class _HomeTab extends StatelessWidget {
   final int activeCampaigns;
   final int applications;
   final int pendingReviews;
+  final String companyName;
+  final List<Map<String, dynamic>> campaigns;
+  final Future<void> Function() onCreateCampaign;
+  final Future<void> Function(Map<String, dynamic>) onEditCampaign;
 
   const _HomeTab({
     required this.activeCampaigns,
     required this.applications,
     required this.pendingReviews,
+    required this.companyName,
+    required this.campaigns,
+    required this.onCreateCampaign,
+    required this.onEditCampaign,
   });
 
   @override
@@ -102,15 +198,15 @@ class _HomeTab extends StatelessWidget {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) =>
-                          const CompanyProfileSetupScreen(isEditMode: true),
+                          CompanyProfileSetupScreen(isEditMode: true),
                     ),
                   );
                 },
                 child: Container(
                   width: 42,
                   height: 42,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE9D5FF),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE9D5FF),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.person, color: Color(0xFF7C3AED)),
@@ -129,7 +225,7 @@ class _HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            AdvertiserStore.profile.companyName,
+            companyName,
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
@@ -141,12 +237,8 @@ class _HomeTab extends StatelessWidget {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const CreateCampaignScreen(),
-                  ),
-                );
+              onPressed: () async {
+                await onCreateCampaign();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF8B5CF6),
@@ -200,8 +292,11 @@ class _HomeTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          ...AdvertiserStore.campaigns.map(
-            (campaign) => _CampaignCard(campaign: campaign),
+          ...campaigns.map(
+            (campaign) => _CampaignCard(
+              campaign: campaign,
+              onEditCampaign: onEditCampaign,
+            ),
           ),
         ],
       ),
@@ -210,9 +305,10 @@ class _HomeTab extends StatelessWidget {
 }
 
 class _CampaignsTab extends StatelessWidget {
-  final List<AdvertiserCampaign> campaigns;
+  final List<Map<String, dynamic>> campaigns;
+  final Future<void> Function(Map<String, dynamic>) onEditCampaign;
 
-  const _CampaignsTab({required this.campaigns});
+  const _CampaignsTab({required this.campaigns, required this.onEditCampaign});
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +329,12 @@ class _CampaignsTab extends StatelessWidget {
           Expanded(
             child: ListView(
               children: campaigns
-                  .map((campaign) => _CampaignCard(campaign: campaign))
+                  .map(
+                    (campaign) => _CampaignCard(
+                      campaign: campaign,
+                      onEditCampaign: onEditCampaign,
+                    ),
+                  )
                   .toList(),
             ),
           ),
@@ -318,13 +419,17 @@ class _StatCard extends StatelessWidget {
 }
 
 class _CampaignCard extends StatelessWidget {
-  final AdvertiserCampaign campaign;
+  final Map<String, dynamic> campaign;
+  final Future<void> Function(Map<String, dynamic>) onEditCampaign;
 
-  const _CampaignCard({required this.campaign});
+  const _CampaignCard({required this.campaign, required this.onEditCampaign});
 
   @override
   Widget build(BuildContext context) {
-    final isDraft = campaign.status == 'Draft';
+    final isDraft = campaign['status'] == 'Draft';
+    final title = campaign['title'] as String;
+    final budget = campaign['budget'] as String;
+    final applications = campaign['applications'] as List;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -358,7 +463,7 @@ class _CampaignCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      campaign.title,
+                      title,
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
@@ -367,7 +472,7 @@ class _CampaignCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '₹${campaign.budget.replaceAll(RegExp(r'[^0-9]'), '')}',
+                      budget,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -407,7 +512,7 @@ class _CampaignCard extends StatelessWidget {
               const Icon(Icons.people, size: 14, color: Color(0xFF8B5CF6)),
               const SizedBox(width: 6),
               Text(
-                '${campaign.applications.length} Applicants',
+                '${applications.length} Applicants',
                 style: const TextStyle(
                   fontSize: 13,
                   color: Color(0xFF6B7280),
@@ -422,12 +527,7 @@ class _CampaignCard extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {
                 if (isDraft) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          CreateCampaignScreen(campaignToEdit: campaign),
-                    ),
-                  );
+                  onEditCampaign(campaign);
                 } else {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -439,7 +539,7 @@ class _CampaignCard extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF3E8FF),
                 foregroundColor: const Color(0xFF7C3AED),
-                elevation:
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
