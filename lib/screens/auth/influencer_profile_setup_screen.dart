@@ -1,4 +1,3 @@
-```dart
 import 'package:flutter/material.dart';
 
 import '../auth/signup_screen.dart';
@@ -19,8 +18,9 @@ class _InfluencerProfileSetupScreenState
   final instagramController = TextEditingController(text: '@mernensi');
   final followersController = TextEditingController(text: '12,500');
   final ageController = TextEditingController(text: '21');
-  final bioController =
-      TextEditingController(text: 'Fashion and lifestyle creator.');
+  final bioController = TextEditingController(
+    text: 'Fashion and lifestyle creator.',
+  );
 
   String category = 'Fashion';
 
@@ -38,10 +38,7 @@ class _InfluencerProfileSetupScreenState
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(fontSize: 12),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 11,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: borderColor),
@@ -131,10 +128,7 @@ class _InfluencerProfileSetupScreenState
                         backgroundColor: purple,
                         child: Text(
                           'MN',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 20),
                         ),
                       ),
                     ),
@@ -152,10 +146,7 @@ class _InfluencerProfileSetupScreenState
                         },
                         child: const Text(
                           'Upload Photo',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: purple,
-                          ),
+                          style: TextStyle(fontSize: 11, color: purple),
                         ),
                       ),
                     ),
@@ -198,10 +189,7 @@ class _InfluencerProfileSetupScreenState
                       ],
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Category',
-                      style: TextStyle(fontSize: 10),
-                    ),
+                    const Text('Category', style: TextStyle(fontSize: 10)),
                     const SizedBox(height: 5),
                     DropdownButtonFormField<String>(
                       value: category,
@@ -227,10 +215,7 @@ class _InfluencerProfileSetupScreenState
                           value: 'Travel',
                           child: Text('Travel'),
                         ),
-                        DropdownMenuItem(
-                          value: 'Food',
-                          child: Text('Food'),
-                        ),
+                        DropdownMenuItem(value: 'Food', child: Text('Food')),
                         DropdownMenuItem(
                           value: 'Fitness',
                           child: Text('Fitness'),
@@ -243,11 +228,7 @@ class _InfluencerProfileSetupScreenState
                       },
                     ),
                     const SizedBox(height: 12),
-                    labeledField(
-                      'Bio',
-                      bioController,
-                      maxLines: 3,
-                    ),
+                    labeledField('Bio', bioController, maxLines: 3),
                     const SizedBox(height: 22),
                     SizedBox(
                       width: double.infinity,
@@ -286,4 +267,3 @@ class _InfluencerProfileSetupScreenState
     );
   }
 }
-```
