@@ -125,6 +125,15 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
     return InkWell(
       onTap: () {
+        if (role == 'Advertiser') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const LoginScreen(role: 'Advertiser'),
+            ),
+          );
+          return;
+        }
+
         setState(() {
           _selectedRole = role;
         });

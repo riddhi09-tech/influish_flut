@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../advertiser/company_profile_setup_screen.dart';
 import '../influencer/influencer_main_navigation.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
@@ -82,10 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 4),
                     const Text(
                       'Log in to continue',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF667085),
-                      ),
+                      style: TextStyle(fontSize: 12, color: Color(0xFF667085)),
                     ),
                     const SizedBox(height: 22),
 
@@ -308,13 +306,19 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _login() {
+    if (widget.role == 'Advertiser') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const CompanyProfileSetupScreen()),
+      );
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) => const InfluencerMainNavigation(),
-      ),
+      MaterialPageRoute(builder: (_) => const InfluencerMainNavigation()),
     );
   }
 }
