@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'advertiser_alerts_screen.dart';
 import 'applicants_screen.dart';
 import 'company_profile_setup_screen.dart';
 import 'create_campaign_screen.dart';
@@ -119,7 +120,7 @@ class _AdvertiserHomeScreenState extends State<AdvertiserHomeScreen> {
               onEditCampaign: _editCampaign,
             ),
             _CampaignsTab(campaigns: _campaigns, onEditCampaign: _editCampaign),
-            const _AlertsTab(),
+            const AdvertiserAlertsScreen(),
             CompanyProfileSetupScreen(isEditMode: true),
           ],
         ),
@@ -339,24 +340,6 @@ class _CampaignsTab extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AlertsTab extends StatelessWidget {
-  const _AlertsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Alerts coming soon.',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF6B7280),
-        ),
       ),
     );
   }

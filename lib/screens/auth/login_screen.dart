@@ -204,7 +204,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           validator: (val) {
-                            if (val == null || val.length < 6) {
+                            if (val == null || val.trim().isEmpty) {
+                              return 'Password is required';
+                            }
+                            if (val.length < 6) {
                               return 'Password must be at least 6 characters';
                             }
                             return null;
@@ -306,6 +309,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _login() {
+    if (!_formKey.currentState!.validate()) return;
+
     if (widget.role == 'Advertiser') {
       Navigator.pushReplacement(
         context,
@@ -313,8 +318,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       return;
     }
-
-    if (!_formKey.currentState!.validate()) return;
 
     Navigator.pushReplacement(
       context,
