@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../services/auth_service.dart';
 import '../advertiser/company_profile_setup_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
 import '../influencer/influencer_main_navigation.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
@@ -25,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _isLoggingIn = false;
 
   @override
   void dispose() {
@@ -134,8 +137,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           validator: (val) {
                             final email = val?.trim() ?? '';
                             if (email.isEmpty ||
-                                !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-                                    .hasMatch(email)) {
+                                !RegExp(
+                                  r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                                ).hasMatch(email)) {
                               return 'Enter a valid email';
                             }
                             return null;
@@ -256,14 +260,23 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: _login,
-                        child: const Text(
-                          'Log In',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        onPressed: _isLoggingIn ? null : _login,
+                        child: _isLoggingIn
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Log In',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -308,20 +321,47 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _login() {
+  Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (widget.role == 'Advertiser') {
+    setState(() => _isLoggingIn = true);
+
+    try {
+      final result = await AuthService().login(
+        _emailController.text,
+        _passwordController.text,
+        role: widget.role,
+      );
+      if (!mounted) return;
+
+      final role = (result['role'] as String).toUpperCase();
+      final Widget destination;
+      switch (role) {
+        case AuthService.adminRole:
+          destination = const AdminDashboardScreen();
+          break;
+        case AuthService.advertiserRole:
+          destination = const CompanyProfileSetupScreen();
+          break;
+        default:
+          destination = const InfluencerMainNavigation();
+      }
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const CompanyProfileSetupScreen()),
+        MaterialPageRoute(builder: (_) => destination),
       );
-      return;
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoggingIn = false);
+      }
     }
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const InfluencerMainNavigation()),
-    );
   }
 }
